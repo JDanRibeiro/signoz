@@ -6,6 +6,30 @@ connectors:
       - name: deployment.environment
       - name: host.name
 receivers:
+  docker_stats:
+    endpoint: unix:///var/run/docker.sock
+    api_version: "1.52"
+    collection_interval: 60s
+    timeout: 50s
+    metrics:
+      container.cpu.utilization:
+        enabled: true
+      container.memory.percent:
+        enabled: true
+      container.network.io.usage.rx_bytes:
+        enabled: true
+      container.network.io.usage.tx_bytes:
+        enabled: true
+      container.network.io.usage.rx_dropped:
+        enabled: true
+      container.network.io.usage.tx_dropped:
+        enabled: true
+      container.memory.usage.limit:
+        enabled: true
+      container.memory.usage.total:
+        enabled: true
+      container.blockio.io_service_bytes_recursive:
+        enabled: true
   otlp:
     protocols:
       grpc:
@@ -43,6 +67,10 @@ processors:
     # Using OTEL_RESOURCE_ATTRIBUTES envvar, env detector adds custom labels.
     detectors: [env, system]
     timeout: 2s
+  resourcedetection/docker:
+    detectors: [env, docker]
+    timeout: 2s
+    override: false
   signozspanmetrics/delta:
     metrics_exporter: signozclickhousemetrics
     metrics_flush_interval: 60s
@@ -74,6 +102,10 @@ extensions:
   pprof:
     endpoint: 0.0.0.0:1777
 exporters:
+  otlp:
+     endpoint: "otel-collector:4317"
+     tls:
+       insecure: true
   clickhousetraces:
     datasource: tcp://clickhouse:9000/signoz_traces
     low_cardinal_exception_grouping: ${env:LOW_CARDINAL_EXCEPTION_GROUPING}
@@ -102,8 +134,8 @@ service:
       processors: [signozspanmetrics/delta, batch]
       exporters: [clickhousetraces, signozmeter]
     metrics:
-      receivers: [otlp, prometheus]
-      processors: [batch]
+      receivers: [otlp, docker_stats, prometheus]
+      processors: [batch, resourcedetection/docker]
       exporters: [signozclickhousemetrics, signozmeter]
     metrics/prometheus:
       receivers: [prometheus]

@@ -50,7 +50,7 @@ receivers:
         - job_name: 'hotrod-metrics'
           scrape_interval: 10s
           static_configs:
-            - targets: ['sample-app:8083']
+            - targets: ['sample-app-apm:8083']
           relabel_configs:
             - target_label: service.name
               replacement: "app-exemplo-apm"

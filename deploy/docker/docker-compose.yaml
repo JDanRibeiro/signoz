@@ -150,12 +150,12 @@ services:
     pid: host
     command:
       - --config=/etc/otel-collector-config.yaml
-      - --manager-config=/etc/manager-config.yaml
-      - --copy-path=/var/tmp/collector-config.yaml
+      # - --manager-config=/etc/manager-config.yaml
+      # - --copy-path=/var/tmp/collector-config.yaml
       - --feature-gates=-pkg.translator.prometheus.NormalizeName
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
-      - ../common/signoz/otel-collector-opamp-config.yaml:/etc/manager-config.yaml
+      # - ../common/signoz/otel-collector-opamp-config.yaml:/etc/manager-config.yaml
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock
       - /proc:/hostfs/proc:ro
@@ -188,6 +188,7 @@ services:
       - "8081:8080"
       - "8083:8083"
     environment:
+      - METRICS=prometheus
       - TZ=America/Cuiaba
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
       - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf

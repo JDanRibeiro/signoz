@@ -164,6 +164,27 @@ services:
     depends_on:
       signoz:
         condition: service_healthy
+  # --- SERVIÇO DE EXEMPLO PARA TESTAR O APM ---
+  sample-app:
+    !!merge <<: *common
+    image: jaegertracing/example-hotrod:latest
+    container_name: sample-app-apm
+    command: 
+      - all
+    ports:
+      - "8081:8080"
+      - "8083:8083"
+    environment:
+      - TZ=America/Cuiaba
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+      - OTEL_SERVICE_NAME=app-exemplo-apm
+      - OTEL_METRICS_EXPORTER=otlp
+      - OTEL_LOGS_EXPORTER=otlp
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=app-exemplo-apm,container.name=sample-app-apm,application=hotrod,deployment.environment=Prod
+    depends_on:
+      otel-collector:
+        condition: service_started
   schema-migrator-sync:
     !!merge <<: *common
     image: signoz/signoz-schema-migrator:${OTELCOL_TAG:-v0.129.12}

@@ -26,10 +26,14 @@ receivers:
         - job_name: 'hotrod-metrics'
           scrape_interval: 10s
           static_configs:
-            - targets: ['sample-app:8083']
+            - targets: ['sample-app-apm:8080']
           relabel_configs:
-            - target_label: service.name
-              replacement: "app-exemplo-apm"
+            - source_labels: [__address__]
+              target_label: service_name
+              replacement: 'hotrod-app'
+            - source_labels: [__address__]
+              target_label: job
+              replacement: 'hotrod-metrics'
 processors:
   batch:
     send_batch_size: 10000
@@ -102,7 +106,7 @@ service:
       processors: [signozspanmetrics/delta, batch]
       exporters: [clickhousetraces, signozmeter]
     metrics:
-      receivers: [otlp, prometheus]
+      receivers: [otlp]
       processors: [batch]
       exporters: [signozclickhousemetrics, signozmeter]
     metrics/prometheus:
